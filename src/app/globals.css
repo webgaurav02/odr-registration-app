@@ -24,3 +24,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  background-color: transparent !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important; /* Set desired color */
+  -webkit-text-fill-color: #000 !important; /* Set text color */
+  transition: background-color 5000s ease-in-out 0s; /* Prevent color flicker */
+}
+

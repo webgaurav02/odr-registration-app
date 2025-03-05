@@ -1,101 +1,172 @@
+'use client'
 import Image from "next/image";
+import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import img_2 from "../../public/img_2.svg";
+import odr_logo from "../../public/odr_logo.svg";
+import axios from "axios";
+
+//Components
+import SpotifyPlayer from "@/components/SpotifyPlayer";
+
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
+  const [loading, setLoading] = useState(false);
+  const [animate, setAnimate] = useState(false);
+  const [isMobile, setIsMobile] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkScreenSize(); // Initial check
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile !== null) {
+      setTimeout(() => {
+        setAnimate(true);
+      }, 2000);
+    }
+  }, [isMobile]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      setLoading(true); // Ensure loading state is set before the request
+      const response = await axios.post("/api/register", formData);
+
+      if (response.data.success) {
+        setTimeout(() => {
+          setSubmitted(true);
+          setLoading(false)
+        }, 1200);
+      }
+      else{
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  if (isMobile === null) return <div className="w-full h-screen bg-black"></div>;
+
+  return (
+    <div className="text-[#00FD00] min-h-screen w-full overflow-hidden flex flex-col items-center justify-center pb-10">
+
+
+      <main className="relative flex flex-col items-center justify-center gap-8 w-full min-h-screen">
+
+        {/* ODR Logo */}
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 0,
+            width: isMobile ? "70vw" : "25vw"
+          }}
+          animate={{
+            opacity: 1,
+            y: animate ? (isMobile ? "-28vh" : "-65%") : 0,
+            x: isMobile ? 0 : (animate ? "37.5vw" : 0),
+            width: animate ? (isMobile ? "40vw" : "20vw") : (isMobile ? "70vw" : "25vw"),
+          }}
+          transition={{ duration: 1 }}
+        >
+          <Image src={odr_logo} alt="ODR Logo" className="h-auto w-full" />
+        </motion.div>
+
+        {/* Image 2 */}
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 0,
+            width: isMobile ? "70vw" : "25vw"
+          }}
+          animate={{
+            opacity: 1,
+            y: animate ? (isMobile ? "100vh" : "25%") : 0,
+            x: isMobile ? 0 : (animate ? "-37.5vw" : 0),
+            width: animate ? (isMobile ? "40vw" : "20vw") : (isMobile ? "70vw" : "25vw"),
+          }}
+          transition={{ duration: 1 }}
+        >
+          <Image src={img_2} alt="Shillong We're Back" className="h-auto w-full" />
+        </motion.div>
+
+
+
+        {/* Form - Moves to the center after animation */}
+        <motion.div
+          initial={{ opacity: 0, y: 100 }}
+          animate={{ opacity: animate ? 1 : 0, y: animate ? 0 : 100 }}
+          transition={{ duration: 1, delay: 1 }}
+          className="absolute top-1/2 transform -translate-y-1/2 w-full flex justify-center"
+        >
+          {submitted && <button
+            type="submit"
+            className="md:w-[30svw] md:mx-0 mx-5 px-10 text-[#00FD00] p-2 rounded-full mt-10 cursor-pointer uppercase font-semibold transition-colors duration-300"
+            disabled
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+            Welcome to the Community!
+          </button>}
+          <form onSubmit={handleSubmit} className={`space-y-5 md:max-w-[25svw] md:px-0 px-10 md:-mt-0 mt-20 ${submitted ? "hidden" : "h-auto"}`}>
+            <div className="md:w-[25svw] mx-auto mb-10 ">
+              <SpotifyPlayer />
+            </div>
+
+            <label htmlFor="name" className="px-5 font-medium">Name</label>
+            <input
+              type="text"
+              name="name"
+              placeholder="Name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full p-2 bg-[#00FD00] border rounded-full text-black outline-none px-5 mt-2 placeholder:text-black/20"
+              required
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+            <label htmlFor="email" className="px-5 font-medium">Email</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full p-2 bg-[#00FD00] border rounded-full text-black outline-none px-5 mt-2 placeholder:text-black/20"
+              required
+            />
+            <label htmlFor="phone" className="px-5 font-medium">Phone</label>
+            <input
+              type="tel"
+              name="phone"
+              placeholder="Phone Number"
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full p-2 bg-[#00FD00] border rounded-full text-black outline-none px-5 mt-2 placeholder:text-black/20"
+              required
+            />
+            {!submitted && <button
+              type="submit"
+              className="w-full border border-[#00FD00] text-[#00FD00] p-2 rounded-full mt-10 hover:bg-[#00FD00] hover:text-black cursor-pointer uppercase font-semibold transition-colors duration-300"
+              disabled={loading}
+            >
+              {loading ? "Submitting..." : "Sign Up"}
+            </button>}
+
+          </form>
+        </motion.div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
